@@ -1,0 +1,75 @@
+# Runs every recipe against one NanoIDP source tree: the procedure, kept
+# here, that NanoIDP's own CI calls on a pull request, and that this
+# repository calls for NanoIDP's main branch.
+#
+# A reusable workflow runs in the caller's context, and a checkout that
+# names no repository would fetch the caller. So both checkouts are explicit
+# and go to directories of their own: the NanoIDP to install, and the
+# recipes to run. The caller pins this file to a commit and passes the same
+# commit as `recipes-ref`, so the procedure and the recipes are one revision.
+name: Run the recipes on a NanoIDP checkout
+
+on:
+  workflow_call:
+    inputs:
+      nanoidp-repository:
+        description: The repository of the NanoIDP to install, as owner/name
+        type: string
+        required: true
+      nanoidp-ref:
+        description: The commit of that repository to install
+        type: string
+        required: true
+      recipes-ref:
+        description: The commit of nanoidp-recipes to run, the one this workflow is pinned to
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  recipes:
+    name: recipes on the checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the NanoIDP to install
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.nanoidp-repository }}
+          ref: ${{ inputs.nanoidp-ref }}
+          path: nanoidp
+          persist-credentials: false
+      - name: Check out the recipes
+        uses: actions/checkout@v4
+        with:
+          repository: cdelmonte-zg/nanoidp-recipes
+          ref: ${{ inputs.recipes-ref }}
+          path: recipes
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the recipes' requirements, then NanoIDP from the checkout over them
+        # Forced: the checkout can carry the same version number as a release,
+        # and with its own dependencies, which a change to them must reach
+        run: |
+          pip install -r recipes/requirements.txt
+          pip install --force-reinstall ./nanoidp
+      - name: What is under test
+        run: |
+          echo "NanoIDP ${{ inputs.nanoidp-repository }} at $(git -C nanoidp rev-parse HEAD)"
+          echo "recipes at $(git -C recipes rev-parse HEAD)"
+          python - <<'PY'
+          import json, os
+          from importlib.metadata import distribution
+          installed = distribution("nanoidp")
+          source = json.loads(installed.read_text("direct_url.json") or "{}").get("url", "")
+          print(f"nanoidp {installed.version} installed from {source or 'an index'}")
+          checkout = "file://" + os.path.join(os.environ["GITHUB_WORKSPACE"], "nanoidp")
+          assert source == checkout, f"NanoIDP was not installed from the checkout ({checkout})"
+          PY
+      - name: Run the recipes
+        working-directory: recipes
+        run: pytest -v
