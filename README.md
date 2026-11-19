@@ -31,8 +31,8 @@ NANOIDP_URL=http://localhost:8000 pytest -v
 ## Requirements
 
 Python 3.10 or later. The scenario recipes need NanoIDP 3.6.0 or later;
-until that release is published, `requirements.txt` installs NanoIDP from its
-main branch.
+until the final release, `requirements.txt` installs its release candidate
+from PyPI.
 
 ## Layout
 

@@ -1,6 +1,7 @@
-# Runs every recipe against the NanoIDP that requirements.txt installs, on
-# each change and once a night, so a recipe that stops working is noticed
-# without a change in this repository.
+# Runs every recipe on each change and once a night, against two NanoIDPs:
+# the release requirements.txt installs, which is what a reader gets, and the
+# main branch, so a change there that breaks a recipe is noticed before it is
+# released.
 name: Recipes
 
 on:
@@ -18,11 +19,21 @@ jobs:
   recipes:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        nanoidp: [release, main]
+    name: recipes (${{ matrix.nanoidp }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
+      - if: matrix.nanoidp == 'main'
+        # Forced: main can carry the same version number as the release
+        run: pip install --force-reinstall "nanoidp @ git+https://github.com/cdelmonte-zg/nanoidp@main"
+      - if: matrix.nanoidp == 'main'
+        run: pip freeze | grep -i "^nanoidp"
       - run: pip show nanoidp | head -2
       - run: pytest -v

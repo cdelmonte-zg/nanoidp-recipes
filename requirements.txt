@@ -1,6 +1,6 @@
-# Scenarios ship with NanoIDP 3.6.0. Until that release is on PyPI the
-# recipes install NanoIDP from its main branch; afterwards this line
-# becomes nanoidp>=3.6.0
-nanoidp @ git+https://github.com/cdelmonte-zg/nanoidp@main
+# Scenarios ship with NanoIDP 3.6.0. Until the final release this line names
+# the release candidate, which also lets pip pick a pre-release; afterwards
+# it becomes nanoidp>=3.6.0
+nanoidp>=3.6.0rc1
 pytest
 requests
