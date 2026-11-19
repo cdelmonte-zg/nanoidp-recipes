@@ -3,7 +3,8 @@
 The scenario in scenario.json creates erin in the group `sales`, with the
 attributes of that department, and moves her to `finance` once the first
 token of a password grant is issued. One step changes two fields together:
-the refreshed token carries the new group and the new attributes.
+the refreshed token carries the new group and the new attributes. A user
+declared in users.yaml is next to her and is not touched.
 """
 
 import base64
@@ -14,7 +15,7 @@ import pytest
 import requests
 
 SCENARIO = json.loads(Path(__file__).with_name("scenario.json").read_text(encoding="utf-8"))
-CLIENT = ("demo-client", "demo-secret")  # the client `nanoidp init` declares
+CLIENT = ("my-app", "my-app-secret")  # the client settings.yaml declares
 TIMEOUT = 10  # seconds: a request to a stuck IdP fails instead of hanging
 
 
@@ -61,6 +62,14 @@ def test_the_refreshed_token_carries_the_new_department(idp, scenario):
     assert after["attributes"] == {"department": "finance", "cost_center": "F-200"}
     assert after["authorities"] == ["ROLE_USER", "GROUP_FINANCE"]
     assert after["roles"] == ["USER"]  # a field the step does not name stays as it is
+
+    # grace is declared in users.yaml and is not the scenario's user: she is
+    # in finance as declared, before and after erin's move
+    colleague = requests.post(f"{idp}/token", auth=CLIENT, timeout=TIMEOUT, data={
+        "grant_type": "password", "username": "grace", "password": "grace-pw",
+    })
+    assert colleague.status_code == 200, colleague.text
+    assert claims(colleague.json()["access_token"])["groups"] == ["finance"]
 
     step = requests.get(scenario, timeout=TIMEOUT).json()["steps"][0]
     assert (step["state"], step["seen"]) == ("applied", 1)

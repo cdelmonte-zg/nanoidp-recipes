@@ -1,3 +1,5 @@
 .venv/
 __pycache__/
 .pytest_cache/
+# Left by `nanoidp validate-config` run on a recipe folder
+.nanoidp-write.lock

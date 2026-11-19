@@ -1,0 +1,4 @@
+# No declared users: the scenario creates the one it needs and removes it
+# afterwards. A user of the same name declared here would make NanoIDP
+# refuse the scenario with 409.
+users: {}

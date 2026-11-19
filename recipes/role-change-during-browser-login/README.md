@@ -24,7 +24,7 @@ pytest -v recipes/role-change-during-browser-login
 | Step | Who | Result |
 |---|---|---|
 | 1 | the test arms `scenario.json` | carol exists with the role `USER` |
-| 2 | the browser opens `/authorize` (code flow, PKCE) | the login page |
+| 2 | the browser opens `/authorize` for the public client `my-spa` (code flow, PKCE) | the login page |
 | 3 | the browser submits carol's password | a redirect to the application with a code; NanoIDP then changes carol's role to `ADMIN` |
 | 4 | the application exchanges the code at `/token` | the token carries `ROLE_ADMIN` |
 | 5 | the test removes the scenario | carol is gone |
@@ -41,6 +41,9 @@ roles.
   its cookie for the browser, a plain call for the application. The
   redirect URI is never called; the test reads the code from the `Location`
   header.
+- `settings.yaml` declares a public client, `my-spa`, as a single page
+  application is: no secret, PKCE required, and one registered redirect
+  URI. `users.yaml` declares no users.
 
 ## Use it in your project
 
@@ -49,7 +52,18 @@ roles.
   after the redirect.
 - To change the user after the tokens exist instead, use the event
   `token_issued` with `grant_type: authorization_code`.
-- The client is `demo-client`, which `nanoidp init` declares without
-  `redirect_uris`: such a client accepts any absolute redirect URI. With
-  your own configuration, use a client whose `redirect_uris` name your
-  callback.
+- NanoIDP redirects only to a URI the client registers: put your
+  application's callback in `redirect_uris`. A client without the list
+  accepts any absolute URI.
+- For an application with a backend, declare a confidential client instead
+  (a `client_secret`, no `token_endpoint_auth_method`) and authenticate the
+  exchange at `/token` with it.
+
+## Take it into your project
+
+Copy this folder and the `conftest.py` of the repository root into a
+directory of your test suite; nothing else is needed. In `settings.yaml`
+put your application's client, port and issuer; in the test, your
+application's calls. The steps are spelled out in
+[role-revoked-on-refresh](../role-revoked-on-refresh/#use-it-in-your-project),
+which ships with its `conftest.py` inside.

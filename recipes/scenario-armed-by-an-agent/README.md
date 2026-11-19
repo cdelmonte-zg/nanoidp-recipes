@@ -19,14 +19,14 @@ From the repository root, with the requirements installed:
 pytest -v recipes/scenario-armed-by-an-agent
 ```
 
-This recipe always starts its own NanoIDP, also when `NANOIDP_URL` is set:
-the MCP server needs the configuration directory of the instance.
+With `NANOIDP_URL` set this recipe is skipped: the MCP server needs the
+configuration directory of the instance, which a URL does not give.
 
 ## What happens
 
 | Step | Who | Result |
 |---|---|---|
-| 1 | the fixture starts NanoIDP with `runtime.store: sqlite` | one store for every process on this configuration |
+| 1 | the fixture starts NanoIDP with `settings.yaml`, which sets `runtime.store: sqlite` | one store for every process on this configuration |
 | 2 | the test starts `nanoidp-mcp` over stdio, as an agent's host does | the tools are available |
 | 3 | the agent calls `arm_scenario` with `scenario.json` | frank exists with the role `USER` |
 | 4 | the application logs in and refreshes, over HTTP | `ROLE_USER`, then `ROLE_ADMIN` |
@@ -42,8 +42,12 @@ that answers the application's request.
   the same object the runtime API takes.
 - `test_armed_by_an_agent.py` uses the MCP client of the `mcp` package in
   place of an agent.
-- The `shared_idp` fixture in the root `conftest.py` adds the `runtime`
-  block to the configuration `nanoidp init` writes.
+- `settings.yaml` declares one confidential client, `my-app`, and the
+  `runtime` block that puts the runtime store in a SQLite file, outside
+  the configuration directory. `users.yaml` declares no users.
+- The `idp_instance` fixture of `conftest.py` gives the test the
+  configuration directory and the working directory of the server, which
+  the MCP server is started with.
 
 ## Use it in your project
 
@@ -53,3 +57,12 @@ that answers the application's request.
 - Without a shared store the tools refuse with
   `MCP_RUNTIME_STORE_NOT_SHARED` and nothing is armed.
 - Keep `runtime.path` outside the configuration directory, as here.
+
+## Take it into your project
+
+Copy this folder and the `conftest.py` of the repository root into a
+directory of your test suite; nothing else is needed. In `settings.yaml`
+put your application's client, port and issuer; in the test, your
+application's calls. The steps are spelled out in
+[role-revoked-on-refresh](../role-revoked-on-refresh/#use-it-in-your-project),
+which ships with its `conftest.py` inside.

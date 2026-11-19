@@ -1,0 +1,19 @@
+# The NanoIDP configuration of this recipe: a public client, as a single
+# page application is. It has no secret, so it must use PKCE, and NanoIDP
+# redirects only to the callback registered here.
+config_version: 1
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+
+oauth:
+  # What the tokens carry as `iss`. Keep it equal to the address the
+  # application reaches NanoIDP at
+  issuer: "http://localhost:8000"
+  clients:
+    - client_id: "my-spa"
+      token_endpoint_auth_method: "none"
+      description: "The single page application under test"
+      redirect_uris:
+        - "http://localhost:3000/callback"

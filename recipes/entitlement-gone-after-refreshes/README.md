@@ -33,6 +33,16 @@ The refresh that reaches the count still carries the old value, as every
 token that fires a step does. `GET /api/runtime/scenarios/{name}` answers
 `seen` and `state` for each step, which the test reads between the calls.
 
+## The files
+
+- `scenario.json` is the declaration, as it is sent to
+  `POST /api/runtime/scenarios`.
+- `test_entitlement_gone.py` arms it in a fixture and reads the tokens and
+  the step between the calls.
+- `settings.yaml` declares one confidential client, `my-app`, and the prefix
+  that turns the entitlement `reports` into `ENT_reports` in the
+  `authorities` claim. `users.yaml` declares no users.
+
 ## Use it in your project
 
 - Keep the fixture and `scenario.json`; replace the requests with your
@@ -42,3 +52,15 @@ token that fires a step does. `GET /api/runtime/scenarios/{name}` answers
   call, as an application should.
 - `count` counts the matching events since the scenario was armed, for each
   step on its own. Without `grant_type` the login would count too.
+- If your application reads another prefix, change `authority_prefixes` in
+  `settings.yaml`; the plain names are in the `entitlements` claim either
+  way.
+
+## Take it into your project
+
+Copy this folder and the `conftest.py` of the repository root into a
+directory of your test suite; nothing else is needed. In `settings.yaml`
+put your application's client, port and issuer; in the test, your
+application's calls. The steps are spelled out in
+[role-revoked-on-refresh](../role-revoked-on-refresh/#use-it-in-your-project),
+which ships with its `conftest.py` inside.

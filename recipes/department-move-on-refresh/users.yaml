@@ -1,0 +1,15 @@
+# One declared user next to the one the scenario creates: grace has always
+# been in finance. The scenario moves erin, its own user, and leaves grace
+# as she is declared here. A user called erin declared here would make
+# NanoIDP refuse the scenario with 409.
+users:
+  grace:
+    password: "grace-pw"
+    email: "grace@example.org"
+    roles:
+      - "USER"
+    groups:
+      - "finance"
+    attributes:
+      department: "finance"
+      cost_center: "F-200"

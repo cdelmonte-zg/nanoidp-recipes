@@ -37,6 +37,8 @@ after that token is built. That is what makes the order reliable.
   `POST /api/runtime/scenarios`.
 - `test_role_change.py` arms it in a fixture, does the two calls and checks
   the two tokens.
+- `settings.yaml` and `users.yaml` are the NanoIDP configuration the test
+  starts: one confidential client, `my-app`, and no declared users.
 
 ## Use it in your project
 
@@ -47,6 +49,14 @@ after that token is built. That is what makes the order reliable.
   `users.yaml`: NanoIDP refuses the scenario with 409.
 - The step names `grant_type: password`. For an application that logs in
   through the browser, use `authorization_code`.
-- The client is `demo-client`, which `nanoidp init` declares with the
-  password and refresh grants. With your own configuration, use a client
-  that has both.
+- NanoIDP gives every client the password and the refresh grant: the
+  client in `settings.yaml` needs only its id and its secret.
+
+## Take it into your project
+
+Copy this folder and the `conftest.py` of the repository root into a
+directory of your test suite; nothing else is needed. In `settings.yaml`
+put your application's client, port and issuer; in the test, your
+application's calls. The steps are spelled out in
+[role-revoked-on-refresh](../role-revoked-on-refresh/#use-it-in-your-project),
+which ships with its `conftest.py` inside.

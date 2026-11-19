@@ -1,0 +1,21 @@
+# The NanoIDP configuration of this recipe: one confidential client, and the
+# prefix a group gets in the `authorities` claim.
+config_version: 1
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+
+oauth:
+  # What the tokens carry as `iss`. Keep it equal to the address the
+  # application reaches NanoIDP at
+  issuer: "http://localhost:8000"
+  clients:
+    - client_id: "my-app"
+      client_secret: "my-app-secret"
+      description: "The application under test"
+
+# The group `finance` reaches the token as GROUP_FINANCE
+authority_prefixes:
+  roles: "ROLE_"
+  groups: "GROUP_"

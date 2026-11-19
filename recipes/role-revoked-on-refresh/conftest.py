@@ -1,9 +1,14 @@
-"""The NanoIDP this recipe runs against.
+"""The NanoIDP a recipe runs against.
 
-The `idp` fixture starts one with the settings.yaml and users.yaml next to
-this file, on the port settings.yaml names, and stops it at the end. Set
-NANOIDP_URL to use an instance that is already running with that
-configuration; the fixture then starts and stops nothing.
+Every recipe has its own settings.yaml and users.yaml next to its test. The
+`idp` fixture starts a NanoIDP with those two files, on the port
+settings.yaml names, and stops it when the recipe's tests are done; the next
+recipe gets a NanoIDP of its own. Set NANOIDP_URL to use an instance that is
+already running with the recipe's configuration; the fixture then starts
+and stops nothing.
+
+This file needs nothing else from the repository: copied next to one
+recipe's files, it starts the NanoIDP of that recipe.
 """
 
 import os
@@ -12,32 +17,42 @@ import socket
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import pytest
 import requests
 import yaml
 
-HERE = Path(__file__).parent
 STARTUP_SECONDS = 30
 
 
-@pytest.fixture(scope="session")
-def idp(tmp_path_factory):
+@dataclass
+class Instance:
+    url: str
+    # None when NANOIDP_URL names the instance: where it runs is not known
+    home: Optional[Path] = None        # the server's working directory: its keys live here
+    config_dir: Optional[Path] = None  # what a second process gets as NANOIDP_CONFIG_DIR
+
+
+@pytest.fixture(scope="module")
+def idp_instance(request, tmp_path_factory):
     given = os.environ.get("NANOIDP_URL")
     if given:
-        yield given.rstrip("/")
+        yield Instance(url=given.rstrip("/"))
         return
 
-    # A copy of the configuration in a temporary directory, which is also the
-    # server's working directory: NanoIDP writes its signing keys there and
-    # nothing lands next to the tests
+    # A copy of the recipe's configuration in a temporary directory, which is
+    # also the server's working directory: NanoIDP writes its signing keys
+    # there and nothing lands next to the tests
+    recipe = request.path.parent
     home = tmp_path_factory.mktemp("nanoidp")
     (home / "config").mkdir()
     for name in ("settings.yaml", "users.yaml"):
-        shutil.copy(HERE / name, home / "config" / name)
-    server_settings = yaml.safe_load((HERE / "settings.yaml").read_text(encoding="utf-8"))["server"]
-    host, port = server_settings["host"], server_settings["port"]
+        shutil.copy(recipe / name, home / "config" / name)
+    listening = yaml.safe_load((recipe / "settings.yaml").read_text(encoding="utf-8"))["server"]
+    host, port = listening["host"], listening["port"]
     url = f"http://{host}:{port}"
 
     # Refuse a port another process holds: the readiness check below would
@@ -71,10 +86,16 @@ def idp(tmp_path_factory):
                     f"{log_path.read_text(encoding='utf-8')}"
                 )
             time.sleep(0.2)
-        yield url
+        yield Instance(url=url, home=home, config_dir=home / "config")
     finally:
         server.terminate()
         try:
             server.wait(timeout=10)
         except subprocess.TimeoutExpired:
             server.kill()
+
+
+@pytest.fixture(scope="module")
+def idp(idp_instance):
+    """The base URL of the recipe's NanoIDP."""
+    return idp_instance.url

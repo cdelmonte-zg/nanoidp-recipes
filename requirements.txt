@@ -5,6 +5,6 @@ nanoidp>=3.6.0rc1
 # The MCP client of scenario-armed-by-an-agent; NanoIDP installs it too
 mcp
 pytest
-# Read by the fixture of role-revoked-on-refresh; NanoIDP installs it too
+# Read by the idp fixture; NanoIDP installs it too
 pyyaml
 requests

@@ -9,19 +9,20 @@ A
 creates the user with two roles and takes one away when the first token is
 issued. The application's login and refresh drive it.
 
-This folder is the one recipe of the catalogue that runs on its own: it
-carries its NanoIDP configuration and the fixture that starts NanoIDP, so
-it can be taken into another project as it is.
+Every recipe of the catalogue has its own NanoIDP configuration. This one
+also carries the fixture that starts NanoIDP, a copy of the `conftest.py`
+of the repository root, so the folder alone can be downloaded and taken
+into another project as it is.
 
 ## Take the recipe and run it
 
-Download this folder from the tag `v1`, install what it needs, run the test:
+Download this folder from the tag `v2`, install what it needs, run the test:
 
 ```bash
 curl -fsSL -o nanoidp-recipes.tar.gz \
-  https://github.com/cdelmonte-zg/nanoidp-recipes/archive/refs/tags/v1.tar.gz
+  https://github.com/cdelmonte-zg/nanoidp-recipes/archive/refs/tags/v2.tar.gz
 tar -xzf nanoidp-recipes.tar.gz --strip-components=2 \
-  nanoidp-recipes-1/recipes/role-revoked-on-refresh
+  nanoidp-recipes-2/recipes/role-revoked-on-refresh
 cd role-revoked-on-refresh
 pip install "nanoidp>=3.6.0rc1" pytest requests pyyaml
 pytest -v
@@ -40,7 +41,7 @@ tests:
 
 ```bash
 curl -fsSL -o scenario.json \
-  https://raw.githubusercontent.com/cdelmonte-zg/nanoidp-recipes/v1/recipes/role-revoked-on-refresh/scenario.json \
+  https://raw.githubusercontent.com/cdelmonte-zg/nanoidp-recipes/v2/recipes/role-revoked-on-refresh/scenario.json \
   && curl -sS -X POST http://localhost:8000/api/runtime/scenarios \
        -H 'Content-Type: application/json' -d @scenario.json
 ```
@@ -73,13 +74,13 @@ the way around it for an application that cannot wait for the refresh:
 |---|---|
 | `scenario.json` | the declaration, as it is sent to `POST /api/runtime/scenarios` |
 | `test_role_revoked.py` | arms the scenario in a fixture, does the calls, checks the tokens |
-| `conftest.py` | the `idp` fixture: starts NanoIDP with the two files below, or uses `NANOIDP_URL` |
+| `conftest.py` | the `idp` fixture: starts NanoIDP with the two files below, or uses `NANOIDP_URL`; the same file as in the repository root |
 | `settings.yaml` | one confidential client, `my-app`, and the port and issuer |
 | `users.yaml` | no declared users: the scenario creates its own |
 
 ## Use it in your project
 
-1. Copy the five files into a directory of your test suite.
+1. Copy the folder's files, README aside, into a directory of your test suite.
 2. In `settings.yaml`, replace `my-app` and its secret with your
    application's client, and set `server.port` and `oauth.issuer` to the
    address your application reaches NanoIDP at. Use the same client in

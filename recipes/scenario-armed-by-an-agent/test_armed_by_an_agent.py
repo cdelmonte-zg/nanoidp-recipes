@@ -4,7 +4,8 @@ The same scenario as role-change-on-refresh, but nothing here calls the
 runtime API: an MCP client starts `nanoidp-mcp` over stdio, as an agent's
 host does, and uses the tools `arm_scenario`, `get_scenario` and
 `remove_scenario`. The MCP server is a second process; it sees the server's
-scenarios because both use one runtime store, a SQLite file.
+scenarios because both use one runtime store, the SQLite file settings.yaml
+names.
 """
 
 import asyncio
@@ -14,12 +15,13 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
 import requests
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 SCENARIO = json.loads(Path(__file__).with_name("scenario.json").read_text(encoding="utf-8"))
-CLIENT = ("demo-client", "demo-secret")  # the client `nanoidp init` declares
+CLIENT = ("my-app", "my-app-secret")  # the client settings.yaml declares
 TIMEOUT = 10  # seconds: a request to a stuck IdP fails instead of hanging
 
 
@@ -46,13 +48,17 @@ def login_and_refresh(idp):
     return [claims(answer.json()["access_token"])["authorities"] for answer in (login, refresh)]
 
 
-def test_an_agent_arms_reads_and_removes_the_scenario(shared_idp):
+def test_an_agent_arms_reads_and_removes_the_scenario(idp_instance):
+    if idp_instance.config_dir is None:
+        pytest.skip("the MCP server needs the configuration directory of the instance, "
+                    "which NANOIDP_URL does not give: run this recipe without it")
+
     # The MCP server gets the configuration directory of the running server
     # and its working directory, so both processes use the same store and keys
     mcp_server = StdioServerParameters(
         command=sys.executable, args=["-m", "nanoidp.mcp_server"],
-        env={**os.environ, "NANOIDP_CONFIG_DIR": str(shared_idp.config_dir)},
-        cwd=str(shared_idp.home),
+        env={**os.environ, "NANOIDP_CONFIG_DIR": str(idp_instance.config_dir)},
+        cwd=str(idp_instance.home),
     )
 
     async def agent():
@@ -69,7 +75,7 @@ def test_an_agent_arms_reads_and_removes_the_scenario(shared_idp):
                 try:
                     # The application's calls are answered by the HTTP server,
                     # which fires the step; the MCP server fires nothing
-                    first, second = await asyncio.to_thread(login_and_refresh, shared_idp.url)
+                    first, second = await asyncio.to_thread(login_and_refresh, idp_instance.url)
                     assert first == ["ROLE_USER"]
                     assert second == ["ROLE_ADMIN"]
 

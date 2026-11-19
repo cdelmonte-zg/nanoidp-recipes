@@ -15,7 +15,7 @@ import pytest
 import requests
 
 SCENARIO = json.loads(Path(__file__).with_name("scenario.json").read_text(encoding="utf-8"))
-CLIENT = ("demo-client", "demo-secret")  # the client `nanoidp init` declares
+CLIENT = ("my-app", "my-app-secret")  # the client settings.yaml declares
 TIMEOUT = 10  # seconds: a request to a stuck IdP fails instead of hanging
 
 

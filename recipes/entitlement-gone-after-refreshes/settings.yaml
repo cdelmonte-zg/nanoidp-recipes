@@ -1,0 +1,22 @@
+# The NanoIDP configuration of this recipe: one confidential client, and the
+# prefix an entitlement gets in the `authorities` claim, which is what the
+# test reads.
+config_version: 1
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+
+oauth:
+  # What the tokens carry as `iss`. Keep it equal to the address the
+  # application reaches NanoIDP at
+  issuer: "http://localhost:8000"
+  clients:
+    - client_id: "my-app"
+      client_secret: "my-app-secret"
+      description: "The application under test"
+
+# The entitlement `reports` reaches the token as ENT_reports
+authority_prefixes:
+  roles: "ROLE_"
+  entitlements: "ENT_"

@@ -2,10 +2,10 @@
 
 The scenario in scenario.json creates carol with the role USER and changes
 her role to ADMIN once her authorization code is stored. The test drives an
-authorization code flow with PKCE the way a browser and an application do:
-the login page, the redirect with the code, the exchange at /token. The
-token of the exchange carries ROLE_ADMIN: NanoIDP reads the user when the
-token is built, not when the code was issued.
+authorization code flow with PKCE the way a browser and a single page
+application do: the login page, the redirect with the code, the exchange at
+/token. The token of the exchange carries ROLE_ADMIN: NanoIDP reads the user
+when the token is built, not when the code was issued.
 """
 
 import base64
@@ -19,8 +19,8 @@ import pytest
 import requests
 
 SCENARIO = json.loads(Path(__file__).with_name("scenario.json").read_text(encoding="utf-8"))
-CLIENT = ("demo-client", "demo-secret")  # the client `nanoidp init` declares
-REDIRECT_URI = "http://localhost:3000/callback"  # never called: the test reads the redirect
+CLIENT_ID = "my-spa"  # the public client settings.yaml declares: no secret, PKCE
+REDIRECT_URI = "http://localhost:3000/callback"  # registered in settings.yaml; never called
 TIMEOUT = 10  # seconds: a request to a stuck IdP fails instead of hanging
 
 
@@ -55,7 +55,7 @@ def test_the_token_of_the_code_carries_the_new_role(idp, scenario):
     # redirect to the application. The session cookie ties the two together
     browser = requests.Session()
     page = browser.get(f"{idp}/authorize", allow_redirects=False, timeout=TIMEOUT, params={
-        "response_type": "code", "client_id": CLIENT[0], "redirect_uri": REDIRECT_URI,
+        "response_type": "code", "client_id": CLIENT_ID, "redirect_uri": REDIRECT_URI,
         "scope": "openid", "state": state,
         "code_challenge": challenge, "code_challenge_method": "S256",
     })
@@ -72,10 +72,12 @@ def test_the_token_of_the_code_carries_the_new_role(idp, scenario):
     step = requests.get(scenario, timeout=TIMEOUT).json()["steps"][0]
     assert (step["state"], step["seen"]) == ("applied", 1)
 
-    # The application: the code for a token
-    exchange = requests.post(f"{idp}/token", auth=CLIENT, timeout=TIMEOUT, data={
+    # The application: the code for a token. A public client names itself
+    # and proves with the PKCE verifier that it is the one that asked
+    exchange = requests.post(f"{idp}/token", timeout=TIMEOUT, data={
         "grant_type": "authorization_code", "code": answer["code"][0],
         "redirect_uri": REDIRECT_URI, "code_verifier": verifier,
+        "client_id": CLIENT_ID,
     })
     assert exchange.status_code == 200, exchange.text
     assert claims(exchange.json()["access_token"])["authorities"] == ["ROLE_ADMIN"]

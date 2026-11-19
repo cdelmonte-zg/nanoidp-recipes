@@ -38,9 +38,10 @@ jobs:
       - run: pip show nanoidp | head -2
       - run: pytest -v
 
-  # role-revoked-on-refresh is the recipe a project takes away: it has to
-  # pass with nothing but its own folder, and with the install line its
-  # README gives.
+  # What a project takes away has to pass away from this repository: each
+  # recipe folder with the root conftest.py and nothing else, installed with
+  # the line the README of role-revoked-on-refresh gives. That folder
+  # carries its own copy of conftest.py, which has to be the root one.
   standalone:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -49,12 +50,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Take the folder alone
-        run: cp -r recipes/role-revoked-on-refresh "$RUNNER_TEMP/recipe"
-      - name: Install what its README names
+      - name: The bundled conftest.py is the root one
+        run: cmp conftest.py recipes/role-revoked-on-refresh/conftest.py
+      - name: Install what the README names
         run: |
           line=$(grep -m1 '^pip install ' recipes/role-revoked-on-refresh/README.md)
           echo "$line"
           eval "$line"
-      - run: pytest -v
-        working-directory: ${{ runner.temp }}/recipe
+      - name: Run each recipe from a folder of its own
+        run: |
+          for recipe in recipes/*/; do
+            name=$(basename "$recipe")
+            cp -r "$recipe" "$RUNNER_TEMP/$name"
+            cp -n conftest.py "$RUNNER_TEMP/$name/"
+            echo "::group::$name"
+            (cd "$RUNNER_TEMP/$name" && pytest -v)
+            echo "::endgroup::"
+          done

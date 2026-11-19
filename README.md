@@ -5,11 +5,14 @@ test identity provider. Each recipe is a small test that starts from a clean
 NanoIDP, sets up one situation an application has to handle, and checks what
 the application would see.
 
-To take one into your own project, start from
-[role-revoked-on-refresh](recipes/role-revoked-on-refresh/): that folder runs
-on its own, with its NanoIDP configuration and the fixture that starts
-NanoIDP, and its README says what to change. The other recipes run inside
-this catalogue and show what else a scenario can do.
+Every recipe has its own NanoIDP configuration, `settings.yaml` and
+`users.yaml`, next to its declaration and its test: a different story needs
+a different client, different users, a different store. A recipe folder and
+the `conftest.py` of this directory are all a project needs to take one
+away. Start from
+[role-revoked-on-refresh](recipes/role-revoked-on-refresh/), which carries
+its `conftest.py` inside, can be downloaded with one command, and says what
+to change.
 
 ## Run them
 
@@ -19,18 +22,16 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-No NanoIDP has to be running. The test session starts one on a free port,
-from the configuration `nanoidp init` writes into a temporary directory, and
-stops it at the end. To use an instance you started yourself:
+No NanoIDP has to be running. Each recipe gets a NanoIDP of its own, started
+with the recipe's configuration on the port its `settings.yaml` names (8000)
+and stopped when the recipe is done. Port 8000 has to be free.
+
+To run one recipe against an instance you started yourself with that
+recipe's configuration:
 
 ```bash
-NANOIDP_URL=http://localhost:8000 pytest -v
+NANOIDP_URL=http://localhost:8000 pytest -v recipes/role-change-on-refresh
 ```
-
-Two recipes always start an instance of their own: scenario-armed-by-an-agent,
-and role-revoked-on-refresh unless the instance `NANOIDP_URL` names declares
-the client of its `settings.yaml`. To run the others against your instance,
-name them: `pytest recipes/role-change-on-refresh`.
 
 ## Recipes
 
@@ -52,7 +53,14 @@ from PyPI.
 ## Layout
 
 ```text
-conftest.py        the idp and shared_idp fixtures: the NanoIDP the recipes run against
-recipes/<name>/    one recipe: a README, its declaration, its test
-                   (role-revoked-on-refresh also its own conftest.py and configuration)
+conftest.py        the idp fixture: starts the NanoIDP of the recipe under test
+recipes/<name>/    one recipe:
+  README.md          what it shows and how to adapt it
+  scenario.json      the declaration
+  settings.yaml      the NanoIDP configuration the recipe needs
+  users.yaml         its declared users, often none
+  test_*.py          the test
 ```
+
+`recipes/role-revoked-on-refresh/conftest.py` is a copy of the root one, kept
+identical by CI.
