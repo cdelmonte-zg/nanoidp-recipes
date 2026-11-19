@@ -2,5 +2,7 @@
 # the release candidate, which also lets pip pick a pre-release; afterwards
 # it becomes nanoidp>=3.6.0
 nanoidp>=3.6.0rc1
+# The MCP client of scenario-armed-by-an-agent; NanoIDP installs it too
+mcp
 pytest
 requests

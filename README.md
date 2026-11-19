@@ -22,6 +22,8 @@ stops it at the end. To use an instance you started yourself:
 NANOIDP_URL=http://localhost:8000 pytest -v
 ```
 
+One recipe, scenario-armed-by-an-agent, always starts its own instance.
+
 ## Recipes
 
 | Recipe | What it shows |
@@ -30,6 +32,8 @@ NANOIDP_URL=http://localhost:8000 pytest -v
 | [role-revoked-on-refresh](recipes/role-revoked-on-refresh/) | A user loses a role between the login and the refresh; the refreshed token and `/userinfo` no longer carry it |
 | [role-change-during-browser-login](recipes/role-change-during-browser-login/) | A role changes between the login page and the code exchange of an authorization code flow with PKCE |
 | [entitlement-gone-after-refreshes](recipes/entitlement-gone-after-refreshes/) | An entitlement disappears after the second refresh, with a step that counts |
+| [department-move-on-refresh](recipes/department-move-on-refresh/) | A user changes group and attributes together; the refreshed token carries both |
+| [scenario-armed-by-an-agent](recipes/scenario-armed-by-an-agent/) | An agent arms, reads and removes a scenario through the MCP server, over a shared runtime store |
 
 ## Requirements
 
@@ -40,6 +44,6 @@ from PyPI.
 ## Layout
 
 ```text
-conftest.py        the idp fixture: one NanoIDP for the test session
+conftest.py        the idp and shared_idp fixtures: the NanoIDP the recipes run against
 recipes/<name>/    one recipe: a README, its declaration, its test
 ```

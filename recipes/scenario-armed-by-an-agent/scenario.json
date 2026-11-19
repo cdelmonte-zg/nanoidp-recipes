@@ -1,0 +1,12 @@
+{
+  "name": "scenario-armed-by-an-agent",
+  "given": {
+    "user": {"username": "frank", "password": "frank-pw", "roles": ["USER"]}
+  },
+  "steps": [
+    {
+      "after": {"event": "token_issued", "grant_type": "password"},
+      "update_user": {"roles": ["ADMIN"]}
+    }
+  ]
+}

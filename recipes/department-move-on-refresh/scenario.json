@@ -1,0 +1,19 @@
+{
+  "name": "department-move-on-refresh",
+  "given": {
+    "user": {
+      "username": "erin", "password": "erin-pw",
+      "roles": ["USER"], "groups": ["sales"],
+      "attributes": {"department": "sales", "cost_center": "S-100"}
+    }
+  },
+  "steps": [
+    {
+      "after": {"event": "token_issued", "grant_type": "password"},
+      "update_user": {
+        "groups": ["finance"],
+        "attributes": {"department": "finance", "cost_center": "F-200"}
+      }
+    }
+  ]
+}
