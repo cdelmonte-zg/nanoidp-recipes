@@ -1,7 +1,8 @@
 # Runs every recipe on each change and once a night, against two NanoIDPs:
 # the release requirements.txt installs, which is what a reader gets, and the
 # main branch, so a change there that breaks a recipe is noticed before it is
-# released.
+# released. The run on main goes through run-recipes.yml, the procedure
+# NanoIDP's own CI calls on its pull requests, so that file is exercised here.
 name: Recipes
 
 on:
@@ -16,27 +17,26 @@ permissions:
   contents: read
 
 jobs:
-  recipes:
+  release:
+    name: recipes (release)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        nanoidp: [release, main]
-    name: recipes (${{ matrix.nanoidp }})
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - if: matrix.nanoidp == 'main'
-        # Forced: main can carry the same version number as the release
-        run: pip install --force-reinstall "nanoidp @ git+https://github.com/cdelmonte-zg/nanoidp@main"
-      - if: matrix.nanoidp == 'main'
-        run: pip freeze | grep -i "^nanoidp"
       - run: pip show nanoidp | head -2
       - run: pytest -v
+
+  main:
+    name: recipes (main)
+    uses: ./.github/workflows/run-recipes.yml
+    with:
+      nanoidp-repository: cdelmonte-zg/nanoidp
+      nanoidp-ref: main
+      recipes-ref: ${{ github.sha }}
 
   # What a project takes away has to pass away from this repository: each
   # recipe folder with the root conftest.py and nothing else, installed with

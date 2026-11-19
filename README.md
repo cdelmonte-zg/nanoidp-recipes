@@ -44,6 +44,13 @@ NANOIDP_URL=http://localhost:8000 pytest -v recipes/role-change-on-refresh
 | [department-move-on-refresh](recipes/department-move-on-refresh/) | A user changes group and attributes together; the refreshed token carries both |
 | [scenario-armed-by-an-agent](recipes/scenario-armed-by-an-agent/) | An agent arms, reads and removes a scenario through the MCP server, over a shared runtime store |
 
+## Run by NanoIDP's own CI
+
+NanoIDP runs these recipes on its pull requests, against the code of the
+pull request, through `.github/workflows/run-recipes.yml` of this
+repository pinned to a commit. A change there that breaks a recipe shows
+as a check before it is merged.
+
 ## Requirements
 
 Python 3.10 or later. The scenario recipes need NanoIDP 3.6.0 or later;
