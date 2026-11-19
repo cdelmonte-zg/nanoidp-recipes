@@ -9,13 +9,48 @@ A
 creates the user with two roles and takes one away when the first token is
 issued. The application's login and refresh drive it.
 
-## Run it
+This folder is the one recipe of the catalogue that runs on its own: it
+carries its NanoIDP configuration and the fixture that starts NanoIDP, so
+it can be taken into another project as it is.
 
-From the repository root, with the requirements installed:
+## Take the recipe and run it
+
+Download this folder from the tag `v1`, install what it needs, run the test:
 
 ```bash
-pytest -v recipes/role-revoked-on-refresh
+curl -fsSL -o nanoidp-recipes.tar.gz \
+  https://github.com/cdelmonte-zg/nanoidp-recipes/archive/refs/tags/v1.tar.gz
+tar -xzf nanoidp-recipes.tar.gz --strip-components=2 \
+  nanoidp-recipes-1/recipes/role-revoked-on-refresh
+cd role-revoked-on-refresh
+pip install "nanoidp>=3.6.0rc1" pytest requests pyyaml
+pytest -v
 ```
+
+Nothing has to be running. The test starts NanoIDP on port 8000 with
+`settings.yaml` and `users.yaml`, and stops it at the end. Scenarios need
+NanoIDP 3.6.0; until that release is final, the requirement above names its
+release candidate.
+
+## Only arm the scenario
+
+For a NanoIDP that is already running with the client of `settings.yaml`,
+when all you want is the scenario, to drive it by hand or from your own
+tests:
+
+```bash
+curl -fsSL -o scenario.json \
+  https://raw.githubusercontent.com/cdelmonte-zg/nanoidp-recipes/v1/recipes/role-revoked-on-refresh/scenario.json \
+  && curl -sS -X POST http://localhost:8000/api/runtime/scenarios \
+       -H 'Content-Type: application/json' -d @scenario.json
+```
+
+The two failures stay apart. When the download fails, the first `curl`
+says so and exits, and nothing is sent to NanoIDP. When NanoIDP refuses
+the declaration, its answer is printed: a JSON object with `error` and
+`kind`, for example for a scenario or a user of that name that exists
+already. Remove the scenario and its user with
+`curl -X DELETE http://localhost:8000/api/runtime/scenarios/role-revoked-on-refresh`.
 
 ## What happens
 
@@ -32,12 +67,35 @@ expires: a signed token cannot be changed after it is issued. Step 4 shows
 the way around it for an application that cannot wait for the refresh:
 `/userinfo` reads the user when it is asked.
 
+## The files
+
+| File | What it is |
+|---|---|
+| `scenario.json` | the declaration, as it is sent to `POST /api/runtime/scenarios` |
+| `test_role_revoked.py` | arms the scenario in a fixture, does the calls, checks the tokens |
+| `conftest.py` | the `idp` fixture: starts NanoIDP with the two files below, or uses `NANOIDP_URL` |
+| `settings.yaml` | one confidential client, `my-app`, and the port and issuer |
+| `users.yaml` | no declared users: the scenario creates its own |
+
 ## Use it in your project
 
-- Keep the fixture and `scenario.json`; replace the requests with your
-  application's login and refresh, and assert that the application refuses
-  what `ADMIN` allowed once it holds the refreshed token.
+1. Copy the five files into a directory of your test suite.
+2. In `settings.yaml`, replace `my-app` and its secret with your
+   application's client, and set `server.port` and `oauth.issuer` to the
+   address your application reaches NanoIDP at. Use the same client in
+   `CLIENT` at the top of the test.
+3. In the test, replace the login and the refresh with your application's
+   own. The comment `YOUR APPLICATION` marks where to assert that it
+   refuses what `ADMIN` allowed once it holds the refreshed token.
+4. In CI, the same as above: install, `pytest`, nothing else to start. If
+   your pipeline already runs a NanoIDP with this configuration, set
+   `NANOIDP_URL` to it and the fixture starts nothing.
+
+Good to know:
+
 - `update_user.roles` replaces the list whole: name the roles the user
   keeps, not the one that goes.
-- The scenario owns its user. Do not declare a user of the same name in
-  `users.yaml`: NanoIDP refuses the scenario with 409.
+- The scenario owns its user. A user of the same name in `users.yaml`
+  makes NanoIDP refuse the scenario with 409.
+- With `session.management_secret` set in your configuration, arming and
+  removing a scenario need it, as every write of `/api` does.

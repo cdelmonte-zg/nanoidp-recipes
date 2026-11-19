@@ -3,8 +3,13 @@
 Runnable recipes for [NanoIDP](https://github.com/cdelmonte-zg/nanoidp), a
 test identity provider. Each recipe is a small test that starts from a clean
 NanoIDP, sets up one situation an application has to handle, and checks what
-the application would see. Copy a recipe into your own test suite and replace
-the requests with your application's.
+the application would see.
+
+To take one into your own project, start from
+[role-revoked-on-refresh](recipes/role-revoked-on-refresh/): that folder runs
+on its own, with its NanoIDP configuration and the fixture that starts
+NanoIDP, and its README says what to change. The other recipes run inside
+this catalogue and show what else a scenario can do.
 
 ## Run them
 
@@ -22,7 +27,10 @@ stops it at the end. To use an instance you started yourself:
 NANOIDP_URL=http://localhost:8000 pytest -v
 ```
 
-One recipe, scenario-armed-by-an-agent, always starts its own instance.
+Two recipes always start an instance of their own: scenario-armed-by-an-agent,
+and role-revoked-on-refresh unless the instance `NANOIDP_URL` names declares
+the client of its `settings.yaml`. To run the others against your instance,
+name them: `pytest recipes/role-change-on-refresh`.
 
 ## Recipes
 
@@ -46,4 +54,5 @@ from PyPI.
 ```text
 conftest.py        the idp and shared_idp fixtures: the NanoIDP the recipes run against
 recipes/<name>/    one recipe: a README, its declaration, its test
+                   (role-revoked-on-refresh also its own conftest.py and configuration)
 ```

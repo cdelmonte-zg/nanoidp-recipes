@@ -14,7 +14,7 @@ import pytest
 import requests
 
 SCENARIO = json.loads(Path(__file__).with_name("scenario.json").read_text(encoding="utf-8"))
-CLIENT = ("demo-client", "demo-secret")  # the client `nanoidp init` declares
+CLIENT = ("my-app", "my-app-secret")  # the client settings.yaml declares
 TIMEOUT = 10  # seconds: a request to a stuck IdP fails instead of hanging
 
 
@@ -55,6 +55,10 @@ def test_the_refreshed_token_no_longer_carries_the_role(idp, scenario):
     })
     assert refresh.status_code == 200, refresh.text
     assert claims(refresh.json()["access_token"])["authorities"] == ["ROLE_USER"]
+
+    # YOUR APPLICATION: in your project the two requests above are your
+    # application's login and refresh. Assert here on what it does once it
+    # holds the refreshed token: it refuses what ADMIN allowed
 
     # The token from the login is still valid and still says ADMIN: that is
     # what a token is. /userinfo reads the user when asked, so it already

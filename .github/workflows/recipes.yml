@@ -37,3 +37,24 @@ jobs:
         run: pip freeze | grep -i "^nanoidp"
       - run: pip show nanoidp | head -2
       - run: pytest -v
+
+  # role-revoked-on-refresh is the recipe a project takes away: it has to
+  # pass with nothing but its own folder, and with the install line its
+  # README gives.
+  standalone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Take the folder alone
+        run: cp -r recipes/role-revoked-on-refresh "$RUNNER_TEMP/recipe"
+      - name: Install what its README names
+        run: |
+          line=$(grep -m1 '^pip install ' recipes/role-revoked-on-refresh/README.md)
+          echo "$line"
+          eval "$line"
+      - run: pytest -v
+        working-directory: ${{ runner.temp }}/recipe
