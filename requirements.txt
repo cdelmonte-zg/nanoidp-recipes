@@ -1,0 +1,6 @@
+# Scenarios ship with NanoIDP 3.6.0. Until that release is on PyPI the
+# recipes install NanoIDP from its main branch; afterwards this line
+# becomes nanoidp>=3.6.0
+nanoidp @ git+https://github.com/cdelmonte-zg/nanoidp@main
+pytest
+requests

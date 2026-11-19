@@ -1,0 +1,12 @@
+{
+  "name": "role-change-on-refresh",
+  "given": {
+    "user": {"username": "alice", "password": "alice-pw", "roles": ["USER"]}
+  },
+  "steps": [
+    {
+      "after": {"event": "token_issued", "grant_type": "password"},
+      "update_user": {"roles": ["ADMIN"]}
+    }
+  ]
+}

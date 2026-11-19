@@ -1,0 +1,28 @@
+# Runs every recipe against the NanoIDP that requirements.txt installs, on
+# each change and once a night, so a recipe that stops working is noticed
+# without a change in this repository.
+name: Recipes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recipes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: pip show nanoidp | head -2
+      - run: pytest -v
