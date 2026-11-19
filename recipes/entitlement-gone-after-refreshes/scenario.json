@@ -1,0 +1,15 @@
+{
+  "name": "entitlement-gone-after-refreshes",
+  "given": {
+    "user": {
+      "username": "dave", "password": "dave-pw",
+      "roles": ["USER"], "entitlements": ["reports"]
+    }
+  },
+  "steps": [
+    {
+      "after": {"event": "token_issued", "grant_type": "refresh_token", "count": 2},
+      "update_user": {"entitlements": []}
+    }
+  ]
+}

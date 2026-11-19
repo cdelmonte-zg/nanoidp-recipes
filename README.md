@@ -27,6 +27,9 @@ NANOIDP_URL=http://localhost:8000 pytest -v
 | Recipe | What it shows |
 |---|---|
 | [role-change-on-refresh](recipes/role-change-on-refresh/) | A user's role changes between the login and the refresh; the refreshed token carries the new role |
+| [role-revoked-on-refresh](recipes/role-revoked-on-refresh/) | A user loses a role between the login and the refresh; the refreshed token and `/userinfo` no longer carry it |
+| [role-change-during-browser-login](recipes/role-change-during-browser-login/) | A role changes between the login page and the code exchange of an authorization code flow with PKCE |
+| [entitlement-gone-after-refreshes](recipes/entitlement-gone-after-refreshes/) | An entitlement disappears after the second refresh, with a step that counts |
 
 ## Requirements
 

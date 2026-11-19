@@ -1,0 +1,12 @@
+{
+  "name": "role-change-during-browser-login",
+  "given": {
+    "user": {"username": "carol", "password": "carol-pw", "roles": ["USER"]}
+  },
+  "steps": [
+    {
+      "after": {"event": "authorization_completed"},
+      "update_user": {"roles": ["ADMIN"]}
+    }
+  ]
+}

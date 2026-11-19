@@ -1,0 +1,12 @@
+{
+  "name": "role-revoked-on-refresh",
+  "given": {
+    "user": {"username": "bob", "password": "bob-pw", "roles": ["USER", "ADMIN"]}
+  },
+  "steps": [
+    {
+      "after": {"event": "token_issued", "grant_type": "password"},
+      "update_user": {"roles": ["USER"]}
+    }
+  ]
+}
