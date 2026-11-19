@@ -42,15 +42,17 @@ tests:
 ```bash
 curl -fsSL -o scenario.json \
   https://raw.githubusercontent.com/cdelmonte-zg/nanoidp-recipes/v2/recipes/role-revoked-on-refresh/scenario.json \
-  && curl -sS -X POST http://localhost:8000/api/runtime/scenarios \
+  && curl -sS --fail-with-body -X POST http://localhost:8000/api/runtime/scenarios \
        -H 'Content-Type: application/json' -d @scenario.json
 ```
 
-The two failures stay apart. When the download fails, the first `curl`
-says so and exits, and nothing is sent to NanoIDP. When NanoIDP refuses
-the declaration, its answer is printed: a JSON object with `error` and
-`kind`, for example for a scenario or a user of that name that exists
-already. Remove the scenario and its user with
+The two failures stay apart, and both fail the command, so it can stand in
+a script. When the download fails, the first `curl` says so and exits, and
+nothing is sent to NanoIDP. When NanoIDP refuses the declaration, its
+answer is printed, a JSON object with `error` and `kind`, for example for
+a scenario or a user of that name that exists already, and the second
+`curl` exits with 22. `--fail-with-body` needs curl 7.76 or later. Remove
+the scenario and its user with
 `curl -X DELETE http://localhost:8000/api/runtime/scenarios/role-revoked-on-refresh`.
 
 ## What happens
