@@ -16,13 +16,13 @@ into another project as it is.
 
 ## Take the recipe and run it
 
-Download this folder from the tag `v2`, install what it needs, run the test:
+Download this folder from the tag `v1`, install what it needs, run the test:
 
 ```bash
 curl -fsSL -o nanoidp-recipes.tar.gz \
-  https://github.com/cdelmonte-zg/nanoidp-recipes/archive/refs/tags/v2.tar.gz
+  https://github.com/cdelmonte-zg/nanoidp-recipes/archive/refs/tags/v1.tar.gz
 tar -xzf nanoidp-recipes.tar.gz --strip-components=2 \
-  nanoidp-recipes-2/recipes/role-revoked-on-refresh
+  nanoidp-recipes-1/recipes/role-revoked-on-refresh
 cd role-revoked-on-refresh
 pip install "nanoidp>=3.6.0rc1" pytest requests pyyaml
 pytest -v
@@ -41,7 +41,7 @@ tests:
 
 ```bash
 curl -fsSL -o scenario.json \
-  https://raw.githubusercontent.com/cdelmonte-zg/nanoidp-recipes/v2/recipes/role-revoked-on-refresh/scenario.json \
+  https://raw.githubusercontent.com/cdelmonte-zg/nanoidp-recipes/v1/recipes/role-revoked-on-refresh/scenario.json \
   && curl -sS --fail-with-body -X POST http://localhost:8000/api/runtime/scenarios \
        -H 'Content-Type: application/json' -d @scenario.json
 ```
